@@ -12,11 +12,18 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
+
 namespace Microsoft.Hadoop.Avro.Tests
 {
+    using Microsoft.Hadoop.Avro;
+    using Microsoft.Hadoop.Avro.Schema;
+    using Microsoft.Hadoop.Avro.Serializers;
+    using Microsoft.Hadoop.Avro.Tests.TestClasses;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
@@ -24,11 +31,6 @@ namespace Microsoft.Hadoop.Avro.Tests
     using System.Runtime.Serialization;
     using System.Text;
     using System.Threading;
-    using Microsoft.Hadoop.Avro;
-    using Microsoft.Hadoop.Avro.Schema;
-    using Microsoft.Hadoop.Avro.Serializers;
-    using Microsoft.Hadoop.Avro.Tests.TestClasses;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public sealed class AvroSerializerTests
@@ -240,8 +242,24 @@ namespace Microsoft.Hadoop.Avro.Tests
         [TestCategory("CheckIn")]
         public void Serializer_SerializeIList()
         {
-            var knownTypes = new[] { typeof(List<Guid>) };
+            var knownTypes = new[] { typeof(List<Guid>), typeof(List<int>) };
             RoundTripSerializationWithCheck(IListClass.Create(), new AvroSerializerSettings { KnownTypes = knownTypes });
+        }
+
+        [TestMethod]
+        [TestCategory("CheckIn")]
+        public void Serializer_SerializeIListWithArray()
+        {
+            var knownTypes = new[] { typeof(Guid[]), typeof(List<int>) };
+            RoundTripSerializationWithCheck(IListClass.CreateWithArray(), new AvroSerializerSettings { KnownTypes = knownTypes });
+        }
+
+        [TestMethod]
+        [TestCategory("CheckIn")]
+        public void Serializer_SerializeIListWithCollection()
+        {
+            var knownTypes = new[] { typeof(Collection<Guid>), typeof(Collection<int>) };
+            RoundTripSerializationWithCheck(IListClass.CreateWithCollection(), new AvroSerializerSettings { KnownTypes = knownTypes });
         }
 
         [TestMethod]
@@ -890,7 +908,7 @@ namespace Microsoft.Hadoop.Avro.Tests
             AvroSerializer.CreateDeserializerOnly<ClassOfInt>(StringSchema, null);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults", 
+        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults",
             Justification = "This test only verifies whether the method will throw as expected.")]
         [TestMethod]
         [TestCategory("CheckIn")]
@@ -1023,10 +1041,10 @@ namespace Microsoft.Hadoop.Avro.Tests
         public void Serializer_SerializeAbstractClassUsingDataContractKnownTypes()
         {
             var settings = new AvroSerializerSettings
-                           {
-                               Resolver = new AvroDataContractResolver(),
-                               KnownTypes = new List<Type> { typeof(Rectangle), typeof(Square) }
-                           };
+            {
+                Resolver = new AvroDataContractResolver(),
+                KnownTypes = new List<Type> { typeof(Rectangle), typeof(Square) }
+            };
             var expected = new AbstractShape[] { Rectangle.Create(), Square.Create() };
             RoundTripSerializationWithCheck(
                 expected,
